@@ -247,7 +247,7 @@ penguins %>%
 
 #### Exercise 2b: Histograms
 
-Add a `facet` to the previous histogram so there is a different histogram for each s`pecies`. Make it so there is one column of plots. How would you compare the distributions?
+Add a `facet` to the previous histogram so there is a different histogram for each `species`. Make it so there is one column of plots. How would you compare the distributions?
 
 ```{r penguin-hist-facet, exercise=TRUE}
 
@@ -279,15 +279,12 @@ penguins %>%
 
 The code below creates a new dataset called `tomatoes`. Use the `tomatoes` dataset to create a barplot that shows the number of days that each tomato variety has been harvested. Make the bars horizontal, fill them in with the color *tomato4* , order them from most to least (hint: use `fct_infreq()` and `fct_rev()`). Also give the plot nice labels.
 
-```{r tomatoes-bar, exercise = TRUE}
+```{r tomatoes-bar, exercise = TRUE, exercise.lines = 10}
 tomatoes <- garden_harvest %>% 
   filter(vegetable == "tomatoes") 
 ```
 
 ```{r tomatoes-bar-solution}
-tomatoes <- garden_harvest %>% 
-  filter(vegetable == "tomatoes") 
-
 tomatoes %>% 
   ggplot(aes(y=fct_rev(fct_infreq(variety)))) +
   geom_bar(fill = "tomato4") +
@@ -299,12 +296,52 @@ tomatoes %>%
 
 #### Exercise 4: Boxplots
 
-Use boxplots to compare something across species (`fct_reorder()`? and change label).
+Use boxplots to compare the `flipper_length_mm` by `species`. Make the boxplots horizontal. How does this graph compare to the faceted histogram you made above? What are the strenghts and weaknesses of each type of graph.
 
-#### Exercise 5: Line graphs
+```{r penguin-box, exercise = TRUE}
 
-Create a linegraph of ...
+```
 
+```{r penguin-box-solution}
+penguins %>% 
+  ggplot(aes(x = flipper_length_mm, y = species)) +
+  geom_boxplot()
+```
+
+
+#### Exercise 5a: Line graphs
+
+The code below creates a dataset (`tomatoes_wt_date`) that has the weight in grams of tomatoes (`daily_wt_g`) for each date. Use that to create a linegraph of the weight of tomatoes harvested each day. 
+
+```{r tomatoes-line, exercise = TRUE, exercise.lines = 10}
+tomatoes_wt_date <- garden_harvest %>% 
+  filter(vegetable == "tomatoes") %>% 
+  group_by(date) %>% 
+  summarize(daily_wt_g = sum(weight))
+```
+
+```{r tomatoes-line-solution}
+tomatoes_wt_date %>% 
+  ggplot(aes(x = date, y = daily_wt_g)) +
+  geom_line()
+```
+
+#### Exercise 5b: Line graphs
+
+The code below creates a dataset (`tomato_variety_daily`) that has the weight in grams of each variety of tomato (`daily_wt_g`) for each date. Use that to create a linegraph of the weight of tomatoes harvested each day, where there is a separate line for each variety, in a different color. What are some ways you might improve this graph?
+
+```{r tomato-variety-line, exercise = TRUE, exercise.lines = 10}
+tomato_variety_daily <- garden_harvest %>% 
+  filter(vegetable == "tomatoes") %>% 
+  group_by(date, variety) %>% 
+  summarize(daily_wt_g = sum(weight))
+```
+
+```{r tomato-variety-line-solution}
+tomato_variety_daily %>% 
+  ggplot(aes(x = date, y = daily_wt_g, color = variety)) +
+  geom_line()
+```
 
 ## `dplyr`
 
