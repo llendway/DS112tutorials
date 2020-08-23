@@ -1,0 +1,291 @@
+---
+title: '`ggplot()` examples'
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    df_print: paged
+    code_download: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+```{r libraries}
+library(tidyverse)     # for data cleaning and plotting
+library(googlesheets4) # for reading googlesheet data
+library(lubridate)     # for date manipulation
+library(ggthemes)      # for even more plotting themes
+gs4_deauth()           # To not have to authorize each time you knit.
+#theme_set(theme_minimal())       # My favorite ggplot() theme :)
+```
+
+```{r data}
+data("penguins") #Palmer penguins data
+
+#Lisa's garden data
+garden_harvest <- read_sheet("https://docs.google.com/spreadsheets/d/1DekSazCzKqPS2jnGhKue7tLxRU3GVL1oxi-4bEM5IWw/edit?usp=sharing") %>% 
+  mutate(date = ymd(date))
+```
+
+```{r harvest_data}
+# create a new dataset, cum_harvest
+cum_harvest <- garden_harvest %>% 
+  group_by(date) %>% 
+  summarize(weight = sum(weight)) %>% 
+  mutate(cum_harvest = cumsum(weight),
+         wt_lbs = cum_harvest*0.00220462)
+
+smry_veg_date <- garden_harvest %>% 
+  group_by(date, vegetable) %>% 
+  summarize(weight = sum(weight))
+```
+
+# 5 different plots
+
+Now that we've learned the syntax for creating plots using `ggplot()`, we're going to learn how to make 5 different types of graphs. The authors of [ModernDive](https://moderndive.com/), the textbook I use in my intro stat course, refer to these as the five named graphs or 5NG. They are a great starting place.
+
+## Scatterplot
+
+We already saw one example of this in the slides where we plotted the cumulative weight in pounds by date. 
+
+```{r}
+ggplot(data = cum_harvest, 
+       mapping = aes(x = date, y = wt_lbs)) +
+  geom_point()
+```
+
+Another way (maybe more common) we use scatterplots is to examine relationships between two quantitative variables.
+
+Let's plot the bill length vs. flipper length for the Palmer Penguins data.
+
+```{r}
+penguins %>% 
+  ggplot(aes(x = bill_length_mm, y = flipper_length_mm)) +
+  geom_point()
+```
+
+After creating the plot, we should interpret the plot. For scatterplots, we will usually describe the direction, form, and strength of the relationship. In this example, there looks to be a positive, linear, moderate relationship.
+
+One way we can easily add another dimension to this plot is by mapping another variable to color inside the aesthetic. Let's try mapping `species` to color.
+
+```{r}
+penguins %>% 
+  ggplot(aes(x = bill_length_mm, 
+             y = flipper_length_mm,
+             color = species)) +
+  geom_point()
+```
+
+## Line graph
+
+Line graphs are most often used to show data over time. Let's go back to the garden data. Originally we plotted it using points, but it might be better to do a line graph.
+
+```{r}
+cum_harvest %>% 
+  ggplot(aes(x = date, y = wt_lbs)) +
+  geom_line()
+```
+
+We could do *both* a line and a point. This is a good time to make sure the aesthetic mapping is in the `ggplot()` portion so it is carried through to both `geom`s. 
+
+```{r}
+cum_harvest %>% 
+  ggplot(aes(x = date, y = wt_lbs)) +
+  geom_line() +
+  geom_point()
+```
+
+After plotting the data, we should describe any trends or patterns we see. In this case, we see that the cumulative harvest is increasing at what looks like an exponential pace.
+
+Let's also see how adding color to a line graph can be useful. The `smry_veg_date` dataset has a row for the weight in pounds by vegetable by day. If we try creating a line graph like we did before, it will look like a mess.
+
+```{r}
+smry_veg_date %>% 
+  ggplot(aes(x = date, y = weight)) +
+  geom_line()
+```
+
+We can make it look better by mapping `vegetable` to the color aesthetic. This plot would probably still need some work after this point.
+
+```{r}
+smry_veg_date %>% 
+  ggplot(aes(x = date, y = weight, color = vegetable)) +
+  geom_line()
+```
+
+## Histogram
+
+Histograms show us the distribution of a quantitative variable. That is, what values that variable takes and how often. Let's look at the distribution of `body_mass_g` for the Palmer Penguins.
+
+```{r}
+penguins %>% 
+  ggplot(aes(x = body_mass_g)) +
+  geom_histogram()
+```
+
+We should describe the shape, center, and spread of the data.
+
+Always try changing the number of bins by adding `bins=<newnumber>` to the `geom_histogram()`. The default number of bins is 30. Try having more and fewer bins to see how that changes the graph.
+
+```{r}
+penguins %>% 
+  ggplot(aes(x = body_mass_g)) +
+  geom_histogram(bins = 30)
+```
+
+Be careful when using color as an aesthetic (mapping a variable to color). By default it will show the original histogram with the coloring reflecting the proportion of that level. Also, `color` changes the color of the outline. If you want to change the inner color, use the `fill` aesthetic.
+
+```{r}
+penguins %>% 
+  ggplot(aes(x = body_mass_g, color = sex)) +
+  geom_histogram()
+```
+
+We can change the color of the bars (NOT map a variable to color) or the outline by setting `color` or `fill` OUTSIDE of the aesthetic. There are many places to find color names in R. [Here](https://www.r-graph-gallery.com/42-colors-names.html) is one. Be careful when choosing your own colors - use something that won't be hard on the eyeballs and is color-blind friendly. 
+
+```{r}
+penguins %>% 
+  ggplot(aes(x = body_mass_g)) +
+  geom_histogram(fill = "lightblue", color = "white")
+```
+
+
+## Boxplot
+
+Boxplots are an easy way to quickly compare distributions of a quantitative variable across different categories. They do not show a lot of detail but are a great starting point. Below, we compare the `body_mass_g` for the three different `species`.
+
+```{r}
+penguins %>% 
+  ggplot(aes(x = species, y = body_mass_g)) +
+  geom_boxplot()
+```
+
+Visually, it can be easier to make comparisons if we put the quantitative variable on the x-axis. 
+
+```{r}
+penguins %>% 
+  ggplot(aes(x = body_mass_g, y = species)) +
+  geom_boxplot()
+```
+
+And, after plotting, make note of differences we observe both in regard to the center (median) and spread (IQR - interquartile range).
+
+
+Sometimes we want to look at how distributions are different across a quantitative variable. When we do that, we need to make that variable a `factor()` (categorical variable). Let's take a look when we try to look at the variation in `body_mass_g` by `year`.
+
+```{r}
+penguins %>% 
+  ggplot(aes(x = factor(year), y = body_mass_g)) +
+  geom_boxplot()
+```
+
+## Barplot
+
+Barplots are most often used to show frequencies of different categories. Let's first see how we can create a barplot to count the number of penguins on each island.
+
+```{r}
+penguins %>% 
+  ggplot(aes(x = island)) +
+  geom_bar()
+```
+
+By default, R will put these in alphabetical order. In this dataset that also happens to be the frequency order. Unless the variable has an ordering (like age, year, etc.), it is helpful to put the bars in descending or ascending order. I'll show an example of that in a moment. We can also make the bars go horizontally by putting the categorical variable as the `y` aesthetic instead of the `x` aesthetic.
+
+Sometimes, we want to create a barplot of already summarized data. Below, I've created a new dataset that computes the total pounds harvested to date for each vegetable. I saved this as a new dataset called `smry_veg`.
+
+```{r}
+smry_veg <- smry_veg_date %>% 
+  group_by(vegetable) %>% 
+  summarize(cum_harvest_lbs = sum(weight)*0.00220462)
+```
+
+Now I want to create a plot where the bar is the length of the cumulative weight and there is a different bar for each vegetable. In this case, I will use `geom_col`.
+
+```{r}
+smry_veg %>% 
+  ggplot(aes(x = vegetable, y = cum_harvest_lbs)) +
+  geom_col()
+```
+
+This is ok, but I can't see the names of the vegetables and it's difficult to tell which vegetables have greater harvests. We can solve the first problem by putting the graph horizontally (switching the `x` and `y` aesthetic). We can solve the second by reordering the vegetables according to weight rather than name, using `fct_reorder()`.
+
+```{r}
+smry_veg %>% 
+  ggplot(aes(x = cum_harvest_lbs,
+             y = fct_reorder(vegetable, cum_harvest_lbs))) +
+  geom_col()
+```
+
+# Other helpful tools
+
+There are SO many ways plots can be modified. I will just show you a few to start.
+
+## Faceting
+
+Faceting is a helpful way to look at separate graphs for each level or value of another variable. Let's look at the distribution of `body_mass_g` by `sex` for the penguins.
+
+```{r}
+penguins %>%
+  ggplot(aes(x = body_mass_g, fill = sex)) +
+  geom_histogram() +
+  facet_wrap(vars(sex))
+```
+
+We can specify the number of rows and columns via `nrow` and `ncol`. We could also set the y-axis to vary for each sex using `scales`.
+
+```{r}
+penguins %>%
+  ggplot(aes(x = body_mass_g, fill = sex)) +
+  geom_histogram() +
+  facet_wrap(vars(sex), ncol = 1, scales = "free_y")
+```
+
+We could also use faceting to look at a line plot of daily harvest for each vegetable. In this case it is especially helpful to allow the y-axis to vary since the vegetables have such different weights. 
+
+```{r}
+smry_veg_date %>% 
+  ggplot(aes(x = date, y = weight, color = vegetable)) + 
+  geom_line() +
+  facet_wrap(vars(vegetable))
+```
+
+## Labeling plots
+
+We often want to give our plots better labels, especially when we've created some variables or used something like `fct_reorder()` in the `ggplot()` code. Let's modify the barplot of reordered vegetables, adding a `labs` layer. Sometimes you might not even need a label for certain things if you call attention to them other ways.
+
+```{r}
+smry_veg %>%
+  ggplot(aes(y = fct_reorder(vegetable, cum_harvest_lbs),
+             x = cum_harvest_lbs)) +
+  geom_col() +
+  labs(title = "Cumulative harvest for each vegetable",
+       caption = "Data from: _____",
+       y = "",
+       x = "Weight (lb)")
+```
+
+# Changing themes
+
+Themes allow you to change the non-data elements of your graph, like background color, font, etc. You can create them on your own or you can use one of the built-in themes. My personal favorite is `theme_minimal()`. There are many more theme options in the `ggthemes` library. Try installing it and playing with the different themes. Once you find one you like, you can change the themes for all your plots at the top of the document (go look). Below, I'll change the theme only for this plot. 
+
+```{r}
+smry_veg %>%
+  ggplot(aes(y = fct_reorder(vegetable, cum_harvest_lbs),
+             x = cum_harvest_lbs)) +
+  geom_col() +
+  theme_minimal()
+```
+
+# Changing colors of aesthetic variables
+
+```{r}
+smry_veg_date %>% 
+  ggplot(aes(x = date, y = weight, color = vegetable)) + 
+  geom_line() +
+  facet_wrap(vars(vegetable)) +
+  scale_color_viridis_d()
+```
+
+

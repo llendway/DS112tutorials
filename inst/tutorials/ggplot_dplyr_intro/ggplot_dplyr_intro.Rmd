@@ -1,0 +1,234 @@
+---
+title: "`ggplot()` and `dplyr` tutorial"
+output: learnr::tutorial
+runtime: shiny_prerendered
+---
+
+## Set up {#setup}
+
+Welcome to your first tutorial for this class, COMP/STAT 112: Introduction to Data Science! As you work through the different sections, there will be videos for you to watch (both embedded YouTube videos and links to the videos on Voicethread), files for you to download, and exercises for you to work through. The solutions to the exercises are provided in the last section. In order to get the most out of these tutorials, you should work through the exercises and only look at the solutions when you are finished or if you get really stuck. To work through the exercises, you can either open your own R Markdown file and add the three code chunks I talk about below or download the R Markdown file for this document by clicking the `Code` icon in the upper right.
+
+If you haven't done so already, please go through the [R Basics](https://r-basics.netlify.app/) document. 
+
+When you start your own document, you should have the following three code chunks at the top of your R Markdown file:
+
+1. Options that control what happens to the R code chunks.
+
+```{r setup}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
+```
+
+2. Libraries that are used and other settings, like a theme you would like to use throughout the document. If you have not yet installed the libraries you are going to use, you will first have to install them. Go to the Packages tab (top of lower right box) and choose Install. You can then list the packages you would like to install. Alternatively, you can use the `install.packages()` function in the console and write the name of each of the packages you want to install. You only need to *install* packages once, although you will need to re-install them if you upgrade to a new version of R. You need to load them with the `library()` statements each time you use them. There is a good analogy with lights: installing the package is like putting the light in the socket, loading the package is like turning the light on.
+
+```{r libraries}
+library(tidyverse)         # for graphing and data cleaning
+library(googlesheets4)     # for reading in data from googlesheets
+library(lubridate)         # for working with dates
+library(palmerpenguins)    # for palmer penguin data
+theme_set(theme_minimal()) # my favorite ggplot theme
+gs4_deauth()               # skips google authorization
+```
+
+```{r my_libraries, include=FALSE}
+library(downloadthis) # for including download buttons for files
+```
+
+3. Load data that will be used. Data from packages can be loaded using the `data()` function. Data outside of a package can be loaded in different ways depending where it is and what type of data it is. In the code below, I use the `read_sheet()` function from the `googlesheets4` library to load data from my google drive.
+
+```{r data}
+# Palmer Penguins data from palmerpenguins library
+data("penguins")
+
+# Lisa's garden data on her google drive
+garden_harvest <- read_sheet("https://docs.google.com/spreadsheets/d/1DekSazCzKqPS2jnGhKue7tLxRU3GVL1oxi-4bEM5IWw/edit?usp=sharing") %>% 
+  mutate(date = ymd(date))
+```
+
+## Motivation
+
+Before jumping into teaching you some Data Science skills in R, I want to give you some motivation. I picked three graphs I've recently seen on Twitter. These are all responses to `#TidyTuesday` which you'll be participating in very soon! Read more about it [here](https://thomasmock.netlify.app/post/tidytuesday-a-weekly-social-data-project-in-r/) if you're curious. There are many definitions of Data Science but I broadly like to think of it as using data to tell a story. These three graphs are just a small sample of doing just that.
+
+One of my favorite Data Visualizers on Twitter:
+
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">And here&#39;s the <a href="https://twitter.com/hashtag/makingof?src=hash&amp;ref_src=twsrc%5Etfw">#makingof</a> of this week&#39;s <a href="https://twitter.com/hashtag/TidyTuesday?src=hash&amp;ref_src=twsrc%5Etfw">#TidyTuesday</a> submission<a href="https://twitter.com/hashtag/dataviz?src=hash&amp;ref_src=twsrc%5Etfw">#dataviz</a> <a href="https://twitter.com/hashtag/rstats?src=hash&amp;ref_src=twsrc%5Etfw">#rstats</a> <a href="https://t.co/zPvjs4KdaH">https://t.co/zPvjs4KdaH</a> <a href="https://t.co/iqTuOFpP4b">pic.twitter.com/iqTuOFpP4b</a></p>&mdash; Georgios Karamanis (@geokaramanis) <a href="https://twitter.com/geokaramanis/status/1251553605787754503?ref_src=twsrc%5Etfw">April 18, 2020</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+One of my former students (and your preceptor!):
+
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">This wk&#39;s <a href="https://twitter.com/R4DScommunity?ref_src=twsrc%5Etfw">@R4DScommunity</a> <a href="https://twitter.com/hashtag/TidyTuesday?src=hash&amp;ref_src=twsrc%5Etfw">#TidyTuesday</a>: guess what a centered dot-plot of astronauts in space by year and nation looks a lot like?<br><br>A space station in mid-orbit (or Cloud City)! <a href="https://twitter.com/hashtag/RStats?src=hash&amp;ref_src=twsrc%5Etfw">#RStats</a> <a href="https://twitter.com/hashtag/r4ds?src=hash&amp;ref_src=twsrc%5Etfw">#r4ds</a> <a href="https://twitter.com/hashtag/DataScience?src=hash&amp;ref_src=twsrc%5Etfw">#DataScience</a> <a href="https://twitter.com/hashtag/DataViz?src=hash&amp;ref_src=twsrc%5Etfw">#DataViz</a> <a href="https://twitter.com/hashtag/tidyverse?src=hash&amp;ref_src=twsrc%5Etfw">#tidyverse</a> <a href="https://twitter.com/hashtag/ggplot2?src=hash&amp;ref_src=twsrc%5Etfw">#ggplot2</a> <a href="https://t.co/hqW7KLWmsn">pic.twitter.com/hqW7KLWmsn</a></p>&mdash; lil bobby tables 🐳 (@robert_b_) <a href="https://twitter.com/robert_b_/status/1283307496879394816?ref_src=twsrc%5Etfw">July 15, 2020</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+A `#TidyTuesday` newcomer:
+
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">My first <a href="https://twitter.com/hashtag/TidyTuesday?src=hash&amp;ref_src=twsrc%5Etfw">#TidyTuesday</a>! I decided to K.I.S.S. and focus on aesthetic for my first week. Thank you <a href="https://twitter.com/kllycttn?ref_src=twsrc%5Etfw">@kllycttn</a> for pointing me to the futurevisions palettes! <br><br>GitHub: <a href="https://t.co/S5YP0pFlvq">https://t.co/S5YP0pFlvq</a><br>futurevisions: <a href="https://t.co/h0dfUYFOqi">https://t.co/h0dfUYFOqi</a> <a href="https://t.co/7hqsz7cwdb">pic.twitter.com/7hqsz7cwdb</a></p>&mdash; Kelly Morrow McCarthy (@KellyMM_neuro) <a href="https://twitter.com/KellyMM_neuro/status/1296577312771760130?ref_src=twsrc%5Etfw">August 20, 2020</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+## Learning goals
+
+
+
+## Data
+
+We will use two different datasets throughout this tutorial. 
+
+### Palmer Penguins
+
+The [Palmer Penguins](https://allisonhorst.github.io/palmerpenguins/index.html#about-the-data) dataset is from the `palmerpenguins` library. The data we will use is called `penguins`. You can read about it within R by typing `?penguins` in the console.
+
+Let's do some basic exploration of the data. The code below uses the `dim()` function to find the dimensions of the dataset - the number of rows and columns. 
+
+```{r penguin-dim}
+dim(penguins)
+```
+
+And we use the `head()` function to view the first 6 rows of the data. 
+
+```{r penguin-head, class.source='fold-hide'}
+head(penguins)
+```
+
+
+### Lisa's Garden Data
+
+
+This dataset, which I named `garden_harvest` in the [Set up](#section-setup), contains data that I have collected (and am still collecting) from my personal garden this summer. You can view the google sheet [here](https://docs.google.com/spreadsheets/d/1dPVHwZgR9BxpigbHLnA0U99TtVHHQtUzNB9UR0wvb7o/edit?usp=sharing). Each row in the data is a "harvest" for a variety of a vegetable. So, vegetables might have multiple rows on a day, especially if they are things I eat twice a day (lettuce) or there are many different varieties of the vegetable (tomatoes). 
+
+I fondly refer to my garden as the "Jungle Garden" because by the end of the summer all the plants are creeping out of their beds and it can be quite the adventure walking through it. Take a look at the video below for an in-depth tour of the garden and details around how I collect the data. 
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/iGMgLFIiSxo" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+[Voicethread: Jungle Garden tour](https://voicethread.com/share/15082674/)
+
+Let's also get an overview of this dataset.
+
+Here, we use the `dim()` function to find the number of cases and variables in the dataset.
+
+```{r garden-dim}
+dim(garden_harvest)
+```
+
+And use the `glimpse()` function to show the first few cases of each of the variables and see the type of variable.
+
+```{r garden-glimpse}
+glimpse(garden_harvest)
+```
+
+## `ggplot()`
+
+Now, let's get ready to plot!
+
+First, watch the video below that introduces the `ggplot()` syntax.
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/0OtY38LVy-o" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+[Voicethread: Intro to `ggplot()`](https://voicethread.com/share/15056881/)
+
+```{r, echo=FALSE}
+download_file(
+  path = "files/01_ggplot.html",
+  button_label = "Download ggplot() slides",
+  button_type = "info",
+  has_icon = TRUE,
+  icon = "fa fa-save",
+  self_contained = FALSE
+)
+```
+
+Next, watch the video below that walks through some examples in R Studio. You can practice along with me by downloading the R Markdown file and working through the problems. If you do that, you will likely get somewhat different results than you see in the video when using the `garden_harvest` data because the data is still changing everyday :)
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/1SYzVMH62yw" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+[Voicethread: `ggplot()` demo](https://voicethread.com/share/15056947/)
+
+```{r, echo=FALSE}
+download_file(
+  path = "files/01_ggplot_demo.Rmd",
+  button_label = "Download ggplot() demo file",
+  button_type = "info",
+  has_icon = TRUE,
+  icon = "fa fa-save",
+  self_contained = FALSE
+)
+```
+
+
+### Your turn!
+
+Now you have the tools you need to begin creating your own plots. As you work through these exercises, it will be helpful to have the *Data Visualization with `ggplot2`* cheatsheet open. Find the cheatsheet [here](https://rstudio.com/resources/cheatsheets/) or, from within R Studio, go to Help --> Cheatsheets and click on *Data Visualization with `ggplot2`*.
+
+#### Exercise 1a: Scatterplots
+
+Use the `penguins` data to create a scatterplot of `bill_length_mm` (x-axis) vs. `bill_depth_mm` (y-axis). I have started the code for you. How would do describe the relationship?
+
+```{r penguin-scatter, eval=FALSE, exercise=TRUE}
+penguins %>% 
+  ggplot(   (x =    , 
+             y =    )) +
+  geom_()
+```
+
+```{r penguin-scatter-solution}
+penguins %>% 
+  ggplot(aes(x = bill_length_mm, 
+             y = bill_depth_mm)) +
+  geom_point()
+```
+
+#### Exercise 1b: Scatterplots
+
+Now use the code you wrote in the previous exercise but add color the points by `species`. How does this change how you described the relationship before?
+
+```{r penguin-scatter2, exercise=TRUE}
+
+```
+
+```{r penguin-scatter2-solution}
+penguins %>% 
+  ggplot(aes(x = bill_length_mm, 
+             y = bill_depth_mm,
+             color = species)) +
+  geom_point()
+```
+
+#### CHALLENGE: Scatterplots 
+
+Now use the code you wrote in the previous exercise but make the points smaller and more transparent.
+
+```{r penguin-scatter3, exercise=TRUE}
+
+```
+
+
+```{r penguin-scatter3-solution}
+penguins %>% 
+  ggplot(aes(x = bill_length_mm, 
+             y = bill_depth_mm,
+             color = species)) +
+  geom_point(alpha = .5, size = .5)
+```
+
+
+#### Exercise 2: Histograms
+
+Create a histogram
+
+Add a facet
+
+
+#### Exercise 3: Barplots 
+
+Barplot of number of days for each tomato variety 
+
+#### Exercise 4: Boxplots
+
+Use boxplots to compare something across species (`fct_reorder()`? and change label).
+
+#### Exercise 5: Line graphs
+
+Create a linegraph of ...
+
+
+## `dplyr`
+
+* Add day of week variable to `garden_harvest`
+
+
+
+
