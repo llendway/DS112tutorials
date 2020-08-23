@@ -1,6 +1,6 @@
 Package: DS112tutorials
 Type: Package
-Title: {learnr} tutorials for DS112 class
+Title: Tutorials for DS112 class
 Version: 0.1.0
 Author: Lisa Lendway
 Maintainer: The package maintainer <lisalendway@gmail.com>
