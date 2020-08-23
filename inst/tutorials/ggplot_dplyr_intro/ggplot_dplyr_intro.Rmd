@@ -6,7 +6,7 @@ runtime: shiny_prerendered
 
 ## Set up {#setup}
 
-Welcome to your first tutorial for this class, COMP/STAT 112: Introduction to Data Science! As you work through the different sections, there will be videos for you to watch (both embedded YouTube videos and links to the videos on Voicethread), files for you to download, and exercises for you to work through. The solutions to the exercises are provided in the last section. In order to get the most out of these tutorials, you should work through the exercises and only look at the solutions when you are finished or if you get really stuck. To work through the exercises, you can either open your own R Markdown file and add the three code chunks I talk about below or download the R Markdown file for this document by clicking the `Code` icon in the upper right.
+Welcome to your first tutorial for this class, COMP/STAT 112: Introduction to Data Science! As you work through the different sections, there will be videos for you to watch (both embedded YouTube videos and links to the videos on Voicethread), files for you to download, and exercises for you to work through. The solutions to the exercises are usually provided, but in order to get the most out of these tutorials, you should work through the exercises and only look at the solutions if you get really stuck. You could also work through the exercises in your own R Markdown file in order to keep the results permanently. If you do that, start the file with the three code chunks I talk about below. Then copy and paste the questions into your document and put your solutions in R code chunks. 
 
 If you haven't done so already, please go through the [R Basics](https://r-basics.netlify.app/) document. 
 
@@ -30,6 +30,7 @@ gs4_deauth()               # skips google authorization
 ```
 
 ```{r my_libraries, include=FALSE}
+library(learnr)
 library(downloadthis) # for including download buttons for files
 ```
 
@@ -62,7 +63,14 @@ A `#TidyTuesday` newcomer:
 
 ## Learning goals
 
+After this tutorial, you should be able to do the following.
 
+* Construct the "Five Named Graphs" using `ggplot2` functions.  
+* Add labels to graphs.  
+* Change the theme of a graph.  
+* Interpret or explain the graph you created.  
+* Use the six main `dplyr` functions to begin "wrangling" data.  
+* Pipe (`%>%`) together a sequence of `dplyr` functions to answer a question.
 
 ## Data
 
@@ -98,15 +106,23 @@ I fondly refer to my garden as the "Jungle Garden" because by the end of the sum
 
 Let's also get an overview of this dataset.
 
-Here, we use the `dim()` function to find the number of cases and variables in the dataset.
+Use the `dim()` function to find the number of cases and variables in the dataset.
 
-```{r garden-dim}
+```{r garden-dim, exercise=TRUE}
+
+```
+
+```{r garden-dim-solution}
 dim(garden_harvest)
 ```
 
-And use the `glimpse()` function to show the first few cases of each of the variables and see the type of variable.
+Use the `glimpse()` function to show the first few cases of each of the variables and see the type of variable.
 
-```{r garden-glimpse}
+```{r garden-glimpse, exercise=TRUE}
+
+```
+
+```{r garden-glimpse-solution}
 glimpse(garden_harvest)
 ```
 
@@ -148,6 +164,12 @@ download_file(
 )
 ```
 
+Lastly, watch this short video about common mistakes. Hopefully you won't make them, but admittedly I sometimes still do.
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/j7F-IdJAOJs" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+[Voicethread: `ggplot()` mistakes](https://voicethread.com/share/15057175/)
+
 
 ### Your turn!
 
@@ -173,7 +195,7 @@ penguins %>%
 
 #### Exercise 1b: Scatterplots
 
-Now use the code you wrote in the previous exercise but add color the points by `species`. How does this change how you described the relationship before?
+Now use the code you wrote in the previous exercise but color the points by `species`. How does this change how you described the relationship before?
 
 ```{r penguin-scatter2, exercise=TRUE}
 
@@ -195,6 +217,9 @@ Now use the code you wrote in the previous exercise but make the points smaller 
 
 ```
 
+<div id="penguin-scatter3-hint">
+**Hint:** Use `alpha` and `size` arguments in `geom_point()`, outside of `aes()`.
+</div>
 
 ```{r penguin-scatter3-solution}
 penguins %>% 
@@ -205,16 +230,72 @@ penguins %>%
 ```
 
 
-#### Exercise 2: Histograms
+#### Exercise 2a: Histograms
 
-Create a histogram
+Create a histogram of the `flipper_length_mm`.
 
-Add a facet
+```{r penguin-hist, exercise=TRUE}
+
+```
+
+```{r penguin-hist-solution}
+penguins %>% 
+  ggplot(aes(flipper_length_mm)) +
+  geom_histogram()
+```
 
 
-#### Exercise 3: Barplots 
+#### Exercise 2b: Histograms
 
-Barplot of number of days for each tomato variety 
+Add a `facet` to the previous histogram so there is a different histogram for each s`pecies`. Make it so there is one column of plots. How would you compare the distributions?
+
+```{r penguin-hist-facet, exercise=TRUE}
+
+```
+
+```{r penguin-hist-facet-solution}
+penguins %>% 
+  ggplot(aes(flipper_length_mm)) +
+  geom_histogram() +
+  facet_wrap(vars(species), ncol = 1)
+```
+
+
+#### Exercise 3a: Barplots 
+
+Create a barplot that shows the number of penguins for each year. Fill in the bars with the color *lightblue*.
+
+```{r penguin-bar, exercise=TRUE}
+
+```
+
+```{r penguin-bar-solution}
+penguins %>% 
+  ggplot(aes(x=year)) +
+  geom_bar(fill = "lightblue")
+```
+
+#### CHALLENGE: Barplots 
+
+The code below creates a new dataset called `tomatoes`. Use the `tomatoes` dataset to create a barplot that shows the number of days that each tomato variety has been harvested. Make the bars horizontal, fill them in with the color *tomato4* , order them from most to least (hint: use `fct_infreq()` and `fct_rev()`). Also give the plot nice labels.
+
+```{r tomatoes-bar, exercise = TRUE}
+tomatoes <- garden_harvest %>% 
+  filter(vegetable == "tomatoes") 
+```
+
+```{r tomatoes-bar-solution}
+tomatoes <- garden_harvest %>% 
+  filter(vegetable == "tomatoes") 
+
+tomatoes %>% 
+  ggplot(aes(y=fct_rev(fct_infreq(variety)))) +
+  geom_bar(fill = "tomato4") +
+  labs(title = "Tomatoes", 
+       subtitle = "# of days each variety has been harvested",
+       x = "",
+       y = "")
+```
 
 #### Exercise 4: Boxplots
 
