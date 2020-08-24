@@ -126,9 +126,13 @@ Use the `glimpse()` function to show the first few cases of each of the variable
 glimpse(garden_harvest)
 ```
 
-## `ggplot()`
+## Creating graphs with `ggplot()`
 
-Now, let's get ready to plot!
+Now, let's get ready to plot some data! The concept map below provides an overview of the functions you will be learning, how they relate to one another, and what they do.
+
+<center>
+![](images/ggplot_concept_map.jpg){width=600px}
+</center>
 
 First, watch the video below that introduces the `ggplot()` syntax.
 
@@ -343,7 +347,72 @@ tomato_variety_daily %>%
   geom_line()
 ```
 
-## `dplyr`
+## Wrangling data with `dplyr` functions
+
+Next, you will learn how to wrangle and manipulate data using six `dplyr` functions. There are many other functions we can use (and we will!) but these six will get us pretty far, especially when combined. The concept map below shows the six functions I will introduce and what they are used for. 
+
+<center>
+
+![](images/dplyr_concept_map.jpg){width=600px}
+</center>
+
+First, watch the video below that introduces the `dplyr` functions.
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/dqP0DejI7lw" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+[Voicethread: Intro to `dplyr`](https://voicethread.com/share/15069275/)
+
+```{r, echo=FALSE}
+download_file(
+  path = "files/02_dplyr_intro.html",
+  button_label = "Download dplyr slides",
+  button_type = "info",
+  has_icon = TRUE,
+  icon = "fa fa-save",
+  self_contained = FALSE
+)
+```
+
+
+To recap, the six main `dplyr` verbs are summarized below.
+
+![*Images from R Studio Cheatsheets: https://rstudio.com/resources/cheatsheets/*](images/dplyr_verbs.png){width=600px}
+
+This table shows the logical operators often used with the `filter()` verb.
+
+Operator  | Meaning
+----------|--------
+`==`      | Equal to
+`>`       | Greater than
+`<`       | Less than
+`>=`      | Greater than or equal to
+`<=`      | Less than or equal to
+`!=`      | Not equal to
+`%in%`    | in 
+`is.na`   | is a missing value (NA)
+`!is.na`  | is not a missing value
+`&`       | and
+`|`       | or
+
+Next, watch the video below that walks through some examples in R Studio. Just like with the `ggplot()` material, you can practice along with me by downloading the R Markdown file and working through the problems. If you do that, you will likely get somewhat different results than you see in the video when using the `garden_harvest` data because the data is still changing everyday :)
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/PgZvq7ZPvEE" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+[Voicethread: `dplyr` demo](https://voicethread.com/share/15078973/)
+
+```{r, echo=FALSE}
+download_file(
+  path = "files/02_dplyr_demo.Rmd",
+  button_label = "Download dplyr demo file",
+  button_type = "info",
+  has_icon = TRUE,
+  icon = "fa fa-save",
+  self_contained = FALSE
+)
+```
+
+
+### Your turn!
 
 * Add day of week variable to `garden_harvest`
 

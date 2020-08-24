@@ -1,0 +1,293 @@
+---
+title: "`dplyr` examples"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    df_print: paged
+    code_download: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+```{r libraries}
+library(tidyverse)     # for data cleaning and plotting
+library(googlesheets4) # for reading googlesheet data
+library(lubridate)     # for date manipulation
+library(ggthemes)      # for even more plotting themes
+gs4_deauth()           # To not have to authorize each time you knit.
+theme_set(theme_minimal())       # My favorite ggplot() theme :)
+```
+
+```{r data}
+data("penguins") #Palmer penguins data
+
+#Lisa's garden data
+garden_harvest <- read_sheet("https://docs.google.com/spreadsheets/d/1DekSazCzKqPS2jnGhKue7tLxRU3GVL1oxi-4bEM5IWw/edit?usp=sharing") %>% 
+  mutate(date = ymd(date))
+```
+
+In this document, we will practice using the main `dplyr` verbs.
+
+# `select()`
+
+**`select()`**: chooses which variables to keep
+
+We'll start with the example you saw in the intro video: select the variables `vegetable` and `weight` from the `garden_harvest` data.
+
+```{r}
+garden_harvest %>% 
+  select(vegetable, weight)
+```
+
+We can select a range of consecutive variables using `:`. Let's select `vegetable` through `weight` from `garden_harvest`.
+
+```{r}
+garden_harvest %>% 
+  select(vegetable:weight)
+```
+
+There are also helper functions you can use, like `starts_with()`. Let's select all variables that start with "v". This may be a silly example in this case but can be very useful with large datasets that may have a specific format to the variable names.
+
+```{r}
+garden_harvest %>% 
+  select(starts_with("v"))
+```
+
+There are many other cool ways to select variables. See more detail [here](https://dplyr.tidyverse.org/reference/select.html).
+
+# `mutate()`
+
+**`mutate()`**: adds one or more variables
+
+Let's compute two new variables. The first, `wt_lbs`, converts the weights from grams to pounds (multiplies by 0.00220462). The second, over_1_lb, returns a `TRUE` if the harvest for that vegetable was over one pound. Otherwise it returns `FALSE`. Notice we can use the first variable we computed in the definition of the second. 
+
+```{r}
+garden_harvest %>% 
+  mutate(wt_lbs = weight * 0.00220462,
+         over_1_lb = wt_lbs > 1)
+```
+
+Another type of `mutate()` I use is to combine `across()` with `mutate()` to apply the same transformation to multiple variables. For example, we might change all character variables to factors, which are a special type of character variable. 
+
+```{r}
+garden_harvest %>% 
+  mutate(across(where(is.character), as.factor))
+```
+
+We put the `across()` function inside of `mutate()`. The first argument in `across()` tells it which variables to use and the second argument tells it which function or functions to apply. To see more details, run `?across` in the console.
+
+Check out more details and see more examples [here](https://dplyr.tidyverse.org/reference/mutate.html). This also has a nice list of functions to use with `mutate()`.
+
+# `filter()`
+
+**`filter()`**: keeps cases that meet certain criteria
+
+We often use the following logical operators
+
+Operator  | Meaning
+----------|--------
+`==`      | Equal to
+`>`       | Greater than
+`<`       | Less than
+`>=`      | Greater than or equal to
+`<=`      | Less than or equal to
+`!=`      | Not equal to
+`%in%`    | in 
+`is.na`   | is a missing value (NA)
+`!is.na`  | is not a missing value
+`&`       | and
+`|`       | or
+
+Replicating the example from the first video, start with the `garden_harvest` data and then filter to the tomato and cucumber cases where the harvest date was on or after August 10th, 2020. The `ymd()` function used here is from the `lubridate` library which has functions that help you work nicely with dates.
+
+```{r}
+garden_harvest %>% 
+  filter(vegetable %in% c("tomatoes", "cucumber"),
+         date >= ymd("2020-08-10"))
+```
+
+Another useful filtering function is `drop_na()`. Used alone, with no arguments, it will drop all cases that have missing values (`NA`) in *any* variable. You can also put variables into the function and it will only drop rows where those variables have missing values. Let's try this with the Palmer Penguins data, which actually has some missing values.
+
+```{r}
+penguins  %>% 
+  drop_na(bill_length_mm)
+```
+
+See more details about `filter()` [here](https://dplyr.tidyverse.org/reference/filter.html).
+
+# `arrange()`
+
+**`arrange()`**: reorders the cases according to a specified criteria
+
+Let's do the example from the video: we start with the garden_harvest data and then arrange the cases in alphabetical order by vegetable. Then within each vegetable, the cases are arranged in descending order order of weight - heaviest to lightest harvests.
+
+```{r}
+garden_harvest %>% 
+  arrange(vegetable, desc(weight))
+```
+
+It is important to note that these arranged changes do not actually change the variables so they do not pass through to plotting. In the following code, I have arranged the vegetables by heaviest to lightest harvests. 
+
+```{r}
+garden_harvest %>% 
+  group_by(vegetable) %>% 
+  summarize(tot_harvest = sum(weight)) %>% 
+  arrange(desc(tot_harvest)) %>% 
+  ggplot(aes(x = tot_harvest, 
+             y = fct_reorder(vegetable, tot_harvest))) +
+  geom_col()
+```
+
+If I try to create a barplot, it will not be in that order. You would have to use `fct_reorder()` to order it correctly.
+
+See more `arrange()` details [here](https://dplyr.tidyverse.org/reference/arrange.html).
+
+# `summarize()`
+
+**`summarize()`**: creates new summarized variables 
+
+This function is almost always used along with `group_by()`. Before moving on to that, I want to point out a couple other functions that help you count. One is the function `n()` which can be used inside `summarize()`. It doesn't take any arguments but just counts the cases/rows. We used that in the example in the first video where I also computed the average and standard deviation of weight. Let's do that.
+
+```{r}
+garden_harvest %>% 
+  summarize(count = n(),
+            avg_wt = mean(weight),
+            sd_wt = sd(weight))
+```
+
+If you *only* want to count, you can use the `count()` function.
+
+```{r}
+garden_harvest  %>% 
+  count()
+```
+
+You can also put variables into the `count()` function so that it gives the number of observations for each level of that variable or combination of variables. Let's try it with `vegetable`.
+
+```{r}
+garden_harvest %>% 
+  count(vegetable)
+```
+
+#`group_by()`
+
+**`group_by()`**: creates a grouped variable
+
+When using `group_by()` alone, the size of the stored data frame does not actually change (neither the cases nor the variables change). Let's group the `garden_harvest` data by `date`. Running that code in the console, we see the grouping effect. 
+
+```{r}
+garden_harvest %>% 
+  group_by(date)
+```
+
+Now let's find the total harvest by `vegetable` and `date`.
+
+```{r}
+garden_harvest %>% 
+  group_by(vegetable, date) %>% 
+  summarize(tot_harvest = sum(weight))
+```
+
+And, let's see what happens when we find the cumulative harvest by `vegetable` and `date` by using a `mutate()` right after the `summarize()`.
+
+```{r}
+garden_harvest %>% 
+  group_by(vegetable, date) %>% 
+  summarize(tot_harvest = sum(weight)) %>% 
+  mutate(cum_harvest = cumsum(tot_harvest))
+```
+
+So, notice the data are still being grouped as we go into the `mutate()`. This is what we want, in this case. But, we need to be careful about that. If our next step doesn't use the grouped data, this will lead to an incorrect computation. We can ungroup the data using the `ungroup()` function. I often `ungroup()` when I'm finished just to make sure I don't make a mistake.
+
+```{r}
+#example of using ungroup()
+garden_harvest %>% 
+  group_by(vegetable, date) %>% 
+  summarize(tot_harvest = sum(weight)) %>% 
+  mutate(cum_harvest = cumsum(tot_harvest)) %>% 
+  ungroup()
+```
+
+We can use `group_by()` with other functions after. For example, I might want to add a variable that is the average daily harvest for each vegetable. I can do that by using `mutate()` after `group_by()`.
+
+```{r}
+garden_harvest %>% 
+  group_by(vegetable) %>% 
+  mutate(avg_daily_harvest = mean(weight)) %>% 
+  select(avg_daily_harvest, everything())
+```
+
+We can also use `group_by()` with `filter()`. Let's keep all the cases where the `weight` is greater than the average harvest weight.
+
+```{r}
+garden_harvest %>% 
+  group_by(vegetable) %>% 
+  filter(weight > mean(weight))
+```
+
+For more information about `summarize()`, go [here](https://dplyr.tidyverse.org/reference/summarise.html).
+
+
+# Examples
+
+## From the previous video
+
+In the previous video, I showed you how we can build up code sequentially via pipes. Here is the example from that video where we've plotted the cumulative harvest for peas and tomatoes. Many of you can probably already look at this code and understand it. For some of you, that part is still hard, and that's ok! But, what is even harder is starting with a question or goal, and figuring out how to get to the answer. We're going to do that together now.
+
+```{r}
+garden_harvest %>% 
+  select(vegetable, date, weight) %>% 
+  mutate(wt_lbs = weight*0.00220462) %>% 
+  filter(vegetable %in% c("tomatoes", "peas")) %>% 
+  group_by(vegetable, date) %>% 
+  summarize(daily_wt_lbs = sum(wt_lbs)) %>% 
+  mutate(cum_wt_lbs = cumsum(daily_wt_lbs)) %>% 
+  ggplot(aes(x = date, y = cum_wt_lbs, color = vegetable)) +
+  geom_line() 
+```
+
+## New example
+
+I am interested in learning how many days have I harvested each vegetable and how that relates to how much I have harvested of each vegetable? I have purposefully not worked through this before this video so I can show you what my "stream-of-thought" coding looks like. Three things I want you to watch are:
+
+1. Building up code. I start with small bits of code and talk through it. I do this even when I'm not recording myself - ask my kids! 
+
+2. Running small section of code. As I build up the code, I run what I've done so far to make sure the outcome is as I suspect. Don't wait until the end to run your code!
+
+3. Flair up the plot at the end. When I get the plot I want, then I spend time thinking about the details - labels, themes, fonts, color palette, etc.
+
+
+```{r}
+garden_harvest %>% 
+  group_by(vegetable, date) %>% 
+  summarize(daily_harvest_g = sum(weight)) %>% 
+  group_by(vegetable) %>% 
+  summarize(number_days = n(),
+            tot_harvest_lb = sum(daily_harvest_g) * 0.00220462) %>% 
+  arrange(desc(number_days)) %>% 
+  ggplot(aes(x = number_days, 
+             y = fct_reorder(vegetable, number_days),
+             size = tot_harvest_lb)) +
+  geom_point() +
+  labs(title = "How many days was each vegetable harvested?",
+       x = "",
+       y = "",
+       size = "Harvest weight (lb)") +
+  theme(legend.position = "bottom",
+        plot.background = element_rect(fill = "snow1"),
+        text = element_text(family = "Times"))
+```
+
+
+
+
+
+
+
+
+
+
+
