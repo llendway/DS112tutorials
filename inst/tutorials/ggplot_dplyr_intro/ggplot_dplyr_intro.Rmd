@@ -394,7 +394,7 @@ Operator  | Meaning
 `&`       | and
 `|`       | or
 
-Next, watch the video below that walks through some examples in R Studio. Just like with the `ggplot()` material, you can practice along with me by downloading the R Markdown file and working through the problems. If you do that, you will likely get somewhat different results than you see in the video when using the `garden_harvest` data because the data is still changing everyday :)
+Next, watch the video below that walks through some examples in R Studio. Just like with the `ggplot()` material, you can practice the `dplyr` problems along with me by downloading the R Markdown file and working through them. If you do that, you will likely get somewhat different results than you see in the video when using the `garden_harvest` data because the data is still changing everyday :)
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/PgZvq7ZPvEE" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
@@ -414,7 +414,209 @@ download_file(
 
 ### Your turn!
 
-* Add day of week variable to `garden_harvest`
+#### Exercise 1: `select()
+
+Select `vegetable`, `date`, and `weight` from the `garden_harvest` data. I have started the code for you below.
+
+```{r garden-select, exercise=TRUE}
+garden_harvest #What do I need to put here?
+  select()
+```
+
+```{r garden-select-solution}
+garden_harvest %>% 
+  select(vegetable, date, weight)
+```
+
+#### Exercise 2a: `mutate()`
+
+Add a variable for weight in kilograms, `weight_kg`. One kilogram is 1000 grams. I started the code below.
+
+```{r garden-kg, exercise=TRUE}
+garden_harvest #What do I need to put here?
+  mutate()
+```
+
+```{r garden-kg-solution}
+garden_harvest %>% 
+  mutate(weight_kg = weight/1000)
+```
+
+#### Exercise 2b: `mutate()`
+
+Keep the `weight_kg` variable from the previous problem and also add a variable to the `garden_harvest` data called `day_of_week` that returns the day of the week. HINT: Use the function `wday()` and add an argument to that function that is `label=TRUE`. 
+
+```{r garden-day, exercise=TRUE}
+
+```
+
+```{r garden-day-hint}
+#add this to mutate
+day_of_week = wday(date, label = TRUE)
+```
+
+```{r garden-day-solution}
+garden_harvest %>% 
+  mutate(weight_kg = weight/1000,
+         day_of_week = wday(date, label = TRUE))
+```
+
+#### Exercise 3a: `filter()`
+
+Filter the `garden_harvest` data to observations that have weights less than 50 grams. 
+
+```{r garden-filter, exercise=TRUE}
+
+```
+
+```{r garden-filter-solution}
+garden_harvest %>%
+  filter(weight < 50)
+```
+
+#### Exercise 3b: `filter()`
+
+Filter the `garden_harvest` data to peas and beans with weights larger than 40 grams.
+
+```{r filter-peas-beans, exercise=TRUE}
+
+```
+
+```{r filter-peas-beans-hint}
+#Use the following in the filter() function and
+#add the names of the vegetables between quotes.
+
+vegetable %in% c("", "")
+```
+
+```{r filter-peas-beans-solution}
+garden_harvest %>% 
+  filter(vegetable %in% c("peas", "beans"),
+         weight > 40)
+```
+
+#### Exercise 4a: `arrange()`
+
+Order the observations in the `garden_harvest` data from largest to smallest weight.
+
+```{r arrange-garden, exercise=TRUE}
+
+```
+
+<div id="arrange-garden-hint">
+**Hint:** Use `desc` to sort from largest to smallest.
+</div>
+
+```{r arrange-garden-solution}
+garden_harvest %>% 
+  arrange(desc(weight))
+```
+
+#### Exercise 4b: `arrange()`
+
+Order the observations in the `garden_harvest` data from largest to smallest weight on each date.
+
+```{r arrange-garden2, exercise=TRUE}
+
+```
+
+```{r arrange-garden2-solution}
+garden_harvest %>% 
+  arrange(date, desc(weight))
+```
+
+#### Exercise 5a: `summarize()`
+
+Find the total weight in grams and how many rows of data are in the `garden_harvest` data.
+
+```{r summarize1, exercise=TRUE}
+
+```
+
+```{r summarize1-solution}
+garden_harvest %>% 
+  summarize(nrows = n(),
+            total_weight = sum(weight))
+```
+
+#### Exercise 5b: `summarize()` with `group_by()`
+
+Find the total weight in grams harvested for each date.
+
+```{r sum-group, exercise=TRUE}
+
+```
+
+```{r sum-group-solution}
+garden_harvest %>% 
+  group_by(date) %>% 
+  summarize(total_weight = sum(weight))
+```
+
+#### Exercise 6: combining `dplyr` verbs
+
+I love tomatoes. Well, truthfully, I love things made out of tomatoes - spaghetti sauce, salsa, soups, and even ketchup. I always want to know which variety of tomato is most productive.  In this exercise, start with the `garden_harvest` data, filter to tomatoes, find the total weight for each variety, compute a new variable to convert the weights from grams to pounds, and lastly sort the data from largest to smallest total weight in pounds. Which variety is best? Is there any information missing?
+
+```{r combo, exercise=TRUE}
+
+```
+
+```{r combo-hint-1}
+#This is the sequence of functions you will use.
+garden_harvest %>% 
+  filter() %>% 
+  group_by() %>% 
+  summarize() %>% 
+  mutate() %>% 
+  arrange()
+```
+
+<div id="combo-hint-2">
+**Hint:** Use `==` inside `filter()` and put the name of the vegetable in quotes.
+</div>
+
+<div id="combo-hint-3">
+**Hint:** Be sure to name the variable you create in the `summarize()` step.
+</div>
+
+```{r combo-solution}
+garden_harvest %>% 
+  filter(vegetable == "tomatoes") %>% 
+  group_by(variety) %>% 
+  summarize(total_weight_g = sum(weight)) %>% 
+  mutate(total_weight_lb = total_weight_g*0.00220462) %>% 
+  arrange(desc(total_weight_lb))
+```
+
+
+#### Exercise 7: combining `dplyr` verbs and `ggplot()`
+
+I'm curious if there are certain days during the week where I harvest more or less. In this exercise, start with the `garden_harvest` data, find the daily harvest in grams for each date, create two new variables: 1. the daily harvest in pounds and 2. day of the week, plot the data so for each day of the week (on the y-axis) a boxplot of the daily harvest in pounds is created.
+
+```{r all-together, exercise=TRUE}
+
+```
+
+```{r all-together-hint}
+#This is the sequence of functions you will use
+garden_harvest %>% 
+  group_by() %>% 
+  summarize() %>% 
+  mutate() %>% 
+  ggplot() + 
+  geom_boxplot()
+```
+
+
+```{r all-together-solution}
+garden_harvest %>% 
+  group_by(date) %>% 
+  summarize(daily_harvest_g = sum(weight)) %>% 
+  mutate(daily_harvest_lb = daily_harvest_g*0.00220462,
+         day_of_week = wday(date, label=TRUE)) %>% 
+  ggplot(aes(x = daily_harvest_lb, y = day_of_week)) + 
+  geom_boxplot()
+```
 
 
 
