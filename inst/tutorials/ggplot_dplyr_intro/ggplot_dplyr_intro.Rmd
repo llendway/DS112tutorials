@@ -70,7 +70,8 @@ After this tutorial, you should be able to do the following.
 * Change the theme of a graph.  
 * Interpret or explain the graph you created.  
 * Use the six main `dplyr` functions to begin "wrangling" data.  
-* Pipe (`%>%`) together a sequence of `dplyr` functions to answer a question.
+* Pipe (`%>%`) together a sequence of `dplyr` functions to answer a question.  
+* Combine `dplyr` verbs and `ggplot()` functions to wrangle and plot data.
 
 ## Data
 
@@ -159,8 +160,19 @@ Next, watch the video below that walks through some examples in R Studio. You ca
 
 ```{r, echo=FALSE}
 download_file(
+  path = "files/01_ggplot_demo_no_code.Rmd",
+  button_label = "Download ggplot() demo file (without code)",
+  button_type = "warning",
+  has_icon = TRUE,
+  icon = "fa fa-save",
+  self_contained = FALSE
+)
+```
+
+```{r, echo=FALSE}
+download_file(
   path = "files/01_ggplot_demo.Rmd",
-  button_label = "Download ggplot() demo file",
+  button_label = "Download ggplot() demo file (with code)",
   button_type = "info",
   has_icon = TRUE,
   icon = "fa fa-save",
@@ -402,8 +414,19 @@ Next, watch the video below that walks through some examples in R Studio. Just l
 
 ```{r, echo=FALSE}
 download_file(
+  path = "files/02_dplyr_demo_no_code.Rmd",
+  button_label = "Download dplyr demo file (without code)",
+  button_type = "warning",
+  has_icon = TRUE,
+  icon = "fa fa-save",
+  self_contained = FALSE
+)
+```
+
+```{r, echo=FALSE}
+download_file(
   path = "files/02_dplyr_demo.Rmd",
-  button_label = "Download dplyr demo file",
+  button_label = "Download dplyr demo file (with code)",
   button_type = "info",
   has_icon = TRUE,
   icon = "fa fa-save",
