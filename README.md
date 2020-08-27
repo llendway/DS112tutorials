@@ -7,7 +7,7 @@ To use this package:
 1. Install the {devtools} package by running the following code in your console. You ONLY need to do this the first time or after you upgrade R. And, if you are using the server, do not install this as it's already on the server.
 
 ```{r}
-install.packages(devtools)
+install.packages("devtools")
 ```
 
 2. Install the {DS112tutorials} package by running the following code in your console. If you are on the server, delete the `dependencies=TRUE` part.
