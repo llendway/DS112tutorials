@@ -15,6 +15,7 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 ```{r libraries}
 library(tidyverse)     # for data cleaning and plotting
 library(googlesheets4) # for reading googlesheet data
+library(palmerpenguins)# for penguin data
 library(lubridate)     # for date manipulation
 library(ggthemes)      # for even more plotting themes
 gs4_deauth()           # To not have to authorize each time you knit.
