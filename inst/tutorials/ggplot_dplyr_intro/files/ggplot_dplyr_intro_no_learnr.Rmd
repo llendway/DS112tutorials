@@ -449,6 +449,27 @@ I'm curious if there are certain days during the week where I harvest more or le
 ```
 
 
+## More with `ggplot()`!
 
+I couldn't resist giving a few more tips and tricks for creating beautiful plots using `ggplot()`!
+
+View the video below:
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/bkAJ3FAAGqA" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+[Voicethread: More with `ggplot()`](https://voicethread.com/share/15213724/)
+
+And follow along with the code!
+
+```{r, echo=FALSE}
+download_file(
+  path = "01_ggplot_more_demo.Rmd",
+  button_label = "Download ggplot() more file",
+  button_type = "info",
+  has_icon = TRUE,
+  icon = "fa fa-save",
+  self_contained = FALSE
+)
+```
 
 

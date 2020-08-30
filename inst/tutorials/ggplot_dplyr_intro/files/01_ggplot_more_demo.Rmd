@@ -1,0 +1,161 @@
+---
+title: "More `ggplot()` examples"
+author: "Lisa Lendway"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    df_print: paged
+    code_download: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+```{r libraries}
+library(tidyverse)     # for data cleaning and plotting
+library(googlesheets4) # for reading googlesheet data
+library(palmerpenguins)# for penguin data
+library(lubridate)     # for date manipulation
+library(ggthemes)      # for even more plotting themes
+library(gghighlight)   # for highlighting lines/bars/etc to stand out
+gs4_deauth()           # To not have to authorize each time you knit.
+theme_set(theme_minimal())       # My favorite ggplot() theme :)
+```
+
+```{r data}
+data("penguins") #Palmer penguins data
+
+#Lisa's garden data
+garden_harvest <- read_sheet("https://docs.google.com/spreadsheets/d/1DekSazCzKqPS2jnGhKue7tLxRU3GVL1oxi-4bEM5IWw/edit?usp=sharing") %>% 
+  mutate(date = ymd(date))
+```
+
+There are so many things `ggplot()` can do. It is impossible for me to teach them all to you. But I want to show you a few more. 
+
+# Side-by-side and filled barplots 
+
+Let's start with a simple example using the `penguins` data. We will create a bar graph that shows the distribution of islands that the different species live on. In terms of `ggplot()` aesthetics, we are putting `species` on the x-axis and filling the bars by `island`. 
+
+```{r}
+penguins %>% 
+  ggplot(aes(x = species, fill = island)) +
+  geom_bar()
+```
+
+In this plot we can still clearly see the count of each species. It is a little difficult to know the counts on each island within species, but we'll come back to that.
+
+We could also show the distribution of species on each island by flipping the `x` and `fill` aesthetics.
+
+```{r}
+penguins %>% 
+  ggplot(aes(x = island, fill = species)) +
+  geom_bar()
+```
+
+Here, we can see the counts on each island but it's harder to see the counts of each species within the island. We can fix that by doing side-by-side barplots.
+
+```{r}
+penguins %>% 
+  ggplot(aes(x = island, fill = species)) +
+  geom_bar(position = "dodge")
+```
+
+If we're less concerned with the counts but more with the proportions, we can fill the bars so their lengths represent proportions.
+
+```{r}
+penguins %>% 
+  ggplot(aes(x = island, fill = species)) +
+  geom_bar(position = "fill")
+```
+
+These are all good graphs, but they answer different questions. So, when designing your graphs, think about the question you're trying to answer. Then, make sure that your graph helps answer that question.
+
+# More graphs
+
+Now, I'm going to move on to my garden data. First, I am going to create a couple datasets that I will use later.
+
+```{r create-data}
+# Daily harvest in pounds for each vegetable
+smry_veg_date <- garden_harvest %>% 
+  mutate(weight_lb = weight*0.00220462) %>% 
+  group_by(date, vegetable) %>% 
+  summarize(daily_weight_lb = sum(weight_lb))
+
+# Weekly harvest in pounds for each vegetable
+smry_veg_week <- garden_harvest %>% 
+  mutate(weight_lb = weight*0.00220462,
+         week = week(date)) %>% 
+  group_by(week, vegetable) %>% 
+  summarize(weekly_weight_lb = sum(weight_lb))
+```
+
+Let's say we are interested in seeing how the type of vegetable harvested changes week to week. One way we could do this is using similar bar plots to what we just talked about with the `penguins` data. We will create a barplot where we put `week` on the x-axis, `weekly_weight_lb` on the y-axis and color by `vegetable`. Since we are using the bars to represent weight, we put in the y-axis and do a `geom_col()` rather than `geom_bar()`. I have also colored differently and  modified the theme so the legend is at the bottom
+
+```{r}
+smry_veg_week %>% 
+  ggplot() +
+  geom_col(aes(x = week, y = weekly_weight_lb, fill = vegetable)) +
+  scale_fill_viridis_d() +
+  labs(y = "Weight (lb)",
+       fill = "") +
+  theme(legend.position = "bottom", 
+        legend.text = element_text(size=6))
+```
+
+Hmmm, this isn't the greatest looking plot. What are some issues? One is that there are too many categories to be nicely represented with colors that are distinguishable from one another. Even if we could, it is difficult to compare the different colors because they can start in different places from week to week. 
+
+
+Let's try a different type of plot using `geom_tile()`. Each vegetable and week will be represented by a small rectangle on a grid. We will fill in the rectangles according to weight.
+
+```{r}
+smry_veg_week %>% 
+  ggplot() +
+  geom_tile(aes(x = week, y = vegetable, fill = weekly_weight_lb))
+```
+
+This still doesn't quite get at what I want, for a couple reasons. First, the vegetables are in alphabetical order, which isn't meaningful. Second, the color scale doesn't seem to work very well since there aren't many vegetables that have weekly harvests greater than 20 pounds. And third, I would like to get rid of the grid lines.  
+
+
+```{r}
+smry_veg_week %>% 
+  ggplot() +
+  geom_tile(aes(x = week, 
+                #reorder vegetable by sum of weekly weight
+                y = fct_reorder(vegetable, weekly_weight_lb, sum), 
+                fill = weekly_weight_lb)) +
+  labs(title = "Weekly vegetable harvests", 
+       y = "",
+       fill = "Weight (lb)") +
+  #change the color scale
+  scale_fill_gradient2(low = "white", 
+                       high = "firebrick4", 
+                       mid = "steelblue4", 
+                       midpoint = 20) +
+  theme(panel.grid = element_blank(),
+        legend.position = "bottom") #no grid
+```
+
+I used [this](http://sape.inf.usi.ch/quick-reference/ggplot2/colour) to help choose my colors. This could still use some work and I encourage you to keep playing with it!
+
+Yet another way we could look at the data is via line graphs. Looking at the resulting plot below, it still looks pretty busy.
+
+```{r}
+smry_veg_week %>% 
+  ggplot() +
+  geom_line(aes(x = week, y = weekly_weight_lb, color = vegetable)) +
+  scale_color_viridis_d() +
+  theme(legend.position = "bottom")
+```
+
+One thing we can do to help is by highlighting only a handful of lines using the `gghighlight()` function from the `gghighlight` library (see documentation [here](https://yutannihilation.github.io/gghighlight/articles/gghighlight.html)). In the code below, we highlight the lines for vegetables where the biggest weekly harvest was more than 5 pounds. 
+
+```{r}
+smry_veg_week %>% 
+  ggplot() +
+  geom_line(aes(x = week, y = weekly_weight_lb, color = vegetable)) +
+  scale_color_viridis_d() +
+  gghighlight(max(weekly_weight_lb) > 5) 
+```
+
