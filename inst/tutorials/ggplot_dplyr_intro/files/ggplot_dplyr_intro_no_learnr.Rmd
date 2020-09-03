@@ -5,6 +5,7 @@ output:
     toc: true
     toc_float: true
     df_print: paged
+    code_download: true
 ---
 
 ## Set up {#setup}
@@ -471,5 +472,189 @@ download_file(
   self_contained = FALSE
 )
 ```
+
+## Exercise solutions
+
+#### Exercise 1a: Scatterplots
+
+```{r penguin-scatter-solution}
+penguins %>% 
+  ggplot(aes(x = bill_length_mm, 
+             y = bill_depth_mm)) +
+  geom_point()
+```
+
+#### Exercise 1b: Scatterplots
+
+```{r penguin-scatter2-solution}
+penguins %>% 
+  ggplot(aes(x = bill_length_mm, 
+             y = bill_depth_mm,
+             color = species)) +
+  geom_point()
+```
+
+#### CHALLENGE: Scatterplots 
+
+```{r penguin-scatter3-solution}
+penguins %>% 
+  ggplot(aes(x = bill_length_mm, 
+             y = bill_depth_mm,
+             color = species)) +
+  geom_point(alpha = .5, size = .5)
+```
+
+#### Exercise 2a: Histograms
+
+```{r penguin-hist-solution}
+penguins %>% 
+  ggplot(aes(flipper_length_mm)) +
+  geom_histogram()
+```
+
+#### Exercise 2b: Histograms
+
+```{r penguin-hist-facet-solution}
+penguins %>% 
+  ggplot(aes(flipper_length_mm)) +
+  geom_histogram() +
+  facet_wrap(vars(species), ncol = 1)
+```
+
+#### Exercise 3a: Barplots 
+
+```{r penguin-bar-solution}
+penguins %>% 
+  ggplot(aes(x=year)) +
+  geom_bar(fill = "lightblue")
+```
+
+#### CHALLENGE: Barplots 
+
+```{r tomatoes-bar-solution}
+tomatoes %>% 
+  ggplot(aes(y=fct_rev(fct_infreq(variety)))) +
+  geom_bar(fill = "tomato4") +
+  labs(title = "Tomatoes", 
+       subtitle = "# of days each variety has been harvested",
+       x = "",
+       y = "")
+```
+
+#### Exercise 4: Boxplots
+
+```{r penguin-box-solution}
+penguins %>% 
+  ggplot(aes(x = flipper_length_mm, y = species)) +
+  geom_boxplot()
+```
+
+#### Exercise 5a: Line graphs
+
+```{r tomatoes-line-solution}
+tomatoes_wt_date %>% 
+  ggplot(aes(x = date, y = daily_wt_g)) +
+  geom_line()
+```
+
+#### Exercise 5b: Line graphs
+
+```{r tomato-variety-line-solution}
+tomato_variety_daily %>% 
+  ggplot(aes(x = date, y = daily_wt_g, color = variety)) +
+  geom_line()
+```
+
+#### Exercise 1: `select()
+
+```{r garden-select-solution}
+garden_harvest %>% 
+  select(vegetable, date, weight)
+```
+
+#### Exercise 2a: `mutate()`
+
+```{r garden-kg-solution}
+garden_harvest %>% 
+  mutate(weight_kg = weight/1000)
+```
+
+#### Exercise 2b: `mutate()`
+
+```{r garden-day-solution}
+garden_harvest %>% 
+  mutate(weight_kg = weight/1000,
+         day_of_week = wday(date, label = TRUE))
+```
+
+#### Exercise 3a: `filter()`
+
+```{r garden-filter-solution}
+garden_harvest %>%
+  filter(weight < 50)
+```
+
+#### Exercise 3b: `filter()`
+
+```{r filter-peas-beans-solution}
+garden_harvest %>% 
+  filter(vegetable %in% c("peas", "beans"),
+         weight > 40)
+```
+
+#### Exercise 4a: `arrange()`
+
+```{r arrange-garden-solution}
+garden_harvest %>% 
+  arrange(desc(weight))
+```
+
+#### Exercise 4b: `arrange()`
+
+```{r arrange-garden2-solution}
+garden_harvest %>% 
+  arrange(date, desc(weight))
+```
+
+#### Exercise 5a: `summarize()`
+
+```{r summarize1-solution}
+garden_harvest %>% 
+  summarize(nrows = n(),
+            total_weight = sum(weight))
+```
+
+#### Exercise 5b: `summarize()` with `group_by()`
+
+```{r sum-group-solution}
+garden_harvest %>% 
+  group_by(date) %>% 
+  summarize(total_weight = sum(weight))
+```
+
+#### Exercise 6: combining `dplyr` verbs
+
+```{r combo-solution}
+garden_harvest %>% 
+  filter(vegetable == "tomatoes") %>% 
+  group_by(variety) %>% 
+  summarize(total_weight_g = sum(weight)) %>% 
+  mutate(total_weight_lb = total_weight_g*0.00220462) %>% 
+  arrange(desc(total_weight_lb))
+```
+
+#### Exercise 7: combining `dplyr` verbs and `ggplot()`
+
+```{r all-together-solution}
+garden_harvest %>% 
+  group_by(date) %>% 
+  summarize(daily_harvest_g = sum(weight)) %>% 
+  mutate(daily_harvest_lb = daily_harvest_g*0.00220462,
+         day_of_week = wday(date, label=TRUE)) %>% 
+  ggplot(aes(x = daily_harvest_lb, y = day_of_week)) + 
+  geom_boxplot()
+```
+
+
 
 
