@@ -15,13 +15,19 @@ install.packages("devtools")
 ```{r}
 devtools::install_github("llendway/DS112tutorials", dependencies=TRUE)
 ```
-3. Load the {learnr} library by running the following in your console:
+3. Install the {learnr} library, if you haven't done that yet, by running the following in your console. If you have, you can skip this step.
+
+```{r}
+install.packages("devtools")
+```
+
+4. Load the {learnr} library by running the following in your console:
 
 ```{r}
 library(learnr)
 ```
 
-4. To run one of the {learnr} tutorials, type something like the following into the console, where the first argument is the name of the tutorial:
+5. To run one of the {learnr} tutorials, type something like the following into the console, where the first argument is the name of the tutorial:
 
 ```{r}
 run_tutorial("ggplot_dplyr_intro", package="DS112tutorials")
