@@ -18,7 +18,7 @@ devtools::install_github("llendway/DS112tutorials", dependencies=TRUE)
 3. Install the {learnr} library, if you haven't done that yet, by running the following in your console. If you have, you can skip this step.
 
 ```{r}
-install.packages("devtools")
+install.packages("learnr")
 ```
 
 4. Load the {learnr} library by running the following in your console:
